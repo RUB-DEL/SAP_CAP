@@ -1,0 +1,39 @@
+ID: tr-fi-cap
+_schema-version: '3.1.0'
+version: 0.0.1
+
+modules:
+  - name: tr-fi-cap-db # Name des DB-Deployer-Moduls
+    type: hdb # DB-Modultyp für HDI
+    path: gen/db # Pfad zu generierten HDI-Artefakten (aus cds build)
+    requires:
+      - name: tr-fi-cap-hdi # Bindung zum HDI-Container-Service
+      - name: tr-fi-cap-db
+    parameters:
+      buildpack: nodejs_buildpack
+  - name: tr-fi-cap-srv
+    type: nodejs
+    path: gen/srv
+    requires:
+      - name: tr-fi-cap-db
+
+resources:
+  - name: tr-fi-cap-hdi # Name des HDI-Container-Service
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: hana # Service-Typ: SAP HANA
+      service-plan: hdi-shared # Plan: geteilter HDI-Container
+  - name: tr-fi-cap-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+description: "A simple CAP project."
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
