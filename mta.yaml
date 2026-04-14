@@ -1,0 +1,44 @@
+_schema-version: 3.3.0
+ID: CAP2DSP
+version: 1.0.0
+description: "A simple CAP project deployed to a shared HDI container CAP2DSP."
+parameters:
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+
+modules:
+  - name: CAP2DSP-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: CAP2DSP
+
+  - name: CAP2DSP-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: CAP2DSP
+
+resources:
+  - name: CAP2DSP
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared

@@ -1,0 +1,26 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "build.mta",
+			"label": "Build ",
+			"taskType": "Build",
+			"projectPath": "/home/user/projects/CAP2DSP",
+			"extensions": []
+		},
+		{
+			"type": "deploy.mta.cf",
+			"label": "CAP2DSP",
+			"taskType": "Deploy",
+			"mtarPath": "/home/user/projects/CAP2DSP/mta_archives/CAP2DSP_0.0.1.mtar",
+			"extensions": [],
+			"dependsOn": [
+				"Build "
+			],
+			"cfTarget": "create new target",
+			"cfEndpoint": "",
+			"cfOrg": "",
+			"cfSpace": ""
+		}
+	]
+}

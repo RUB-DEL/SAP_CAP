@@ -1,0 +1,6 @@
+{
+  "file_suffixes": {
+    "hdbrole": { "plugin_name": "com.sap.hana.di.role" },
+    "namespace": { "plugin_name": "com.sap.hana.di.namespace" }
+  }
+}
