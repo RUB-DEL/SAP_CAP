@@ -1,44 +1,89 @@
 _schema-version: 3.3.0
 ID: CAP2DSP
+description: A simple CAP project deployed to a shared HDI container CAP2DSP.
 version: 1.0.0
-description: "A simple CAP project deployed to a shared HDI container CAP2DSP."
+modules:
+- name: CAP2DSP-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: CAP2DSP
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+  build-parameters:
+    builder: npm-ci
+- name: CAP2DSP-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: CAP2DSP
+  parameters:
+    buildpack: nodejs_buildpack
+- name: CAP2DSP-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: CAP2DSP-repo-host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - dspstewardshipcap2dsp.zip
+      name: dspstewardshipcap2dsp
+      target-path: resources/
+- name: dspstewardshipcap2dsp
+  type: html5
+  path: app/cap2dsp
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: CAP2DSP
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+- name: CAP2DSP-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: CAP2DSP-html5-service
+    service-plan: app-host
+- name: CAP2DSP-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: false
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-name: CAP2DSP-destination-service
+    service-plan: lite
 parameters:
+  deploy_mode: html5-repo
   enable-parallel-deployments: true
-
 build-parameters:
   before-all:
-    - builder: custom
-      commands:
-        - npm ci
-        - npx cds build --production
-
-modules:
-  - name: CAP2DSP-srv
-    type: nodejs
-    path: gen/srv
-    parameters:
-      instances: 1
-      buildpack: nodejs_buildpack
-    build-parameters:
-      builder: npm-ci
-    provides:
-      - name: srv-api
-        properties:
-          srv-url: ${default-url}
-    requires:
-      - name: CAP2DSP
-
-  - name: CAP2DSP-db-deployer
-    type: hdb
-    path: gen/db
-    parameters:
-      buildpack: nodejs_buildpack
-    requires:
-      - name: CAP2DSP
-
-resources:
-  - name: CAP2DSP
-    type: com.sap.xs.hdi-container
-    parameters:
-      service: hana
-      service-plan: hdi-shared
+  - builder: custom
+    commands:
+    - npm ci
+    - npx cds build --production
